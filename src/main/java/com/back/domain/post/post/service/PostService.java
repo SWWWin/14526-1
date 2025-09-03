@@ -36,4 +36,11 @@ public class PostService {
         );
     }
 
+    public Post findByTitle(String title) {
+        return postRepository.findByTitle(title).orElseThrow(
+                () -> new RuntimeException("게시글이 존재하지 않습니다.")
+        );
+    }
+
+
 }
