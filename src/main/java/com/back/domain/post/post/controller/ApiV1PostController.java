@@ -2,6 +2,7 @@ package com.back.domain.post.post.controller;
 
 import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.dto.PostWriteReqBody;
+import com.back.domain.post.post.dto.PostWriteResBody;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import com.back.domain.post.postComment.dto.PostCommentDto;
@@ -58,13 +59,11 @@ public class ApiV1PostController {
 
     @Transactional
     @PostMapping()
-    public RsData<Map<String, Object>> write(@RequestBody PostWriteReqBody form) {
+    public RsData<PostWriteResBody> write(@RequestBody PostWriteReqBody form) {
         Post post = postService.create(form.title(), form.content());
         long totalCount = postService.count();
-        Map<String, Object> data = Map.of(
-                "totalCount", totalCount,
-                "post", new PostDto(post)
-        );
-        return new RsData<>("200-1", "%d번 게시글이 생성되었습니다.".formatted(post.getId()), data);
+        return new RsData<>("200-1",
+                "%d번 게시글이 생성되었습니다.".formatted(post.getId()),
+                new PostWriteResBody(totalCount, new PostDto(post)));
     }
 }
