@@ -11,11 +11,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/vi/posts/{id}/comments")
+@RequestMapping("/api/v1/posts/{postId}/comments")
 public class ApiV1PostCommentController {
     private final PostService postService;
 
@@ -43,13 +46,19 @@ public class ApiV1PostCommentController {
 
     @Transactional
     @GetMapping("/{commentId}/delete")
-    public String delete(
+    public Map<String, Object> delete(
             @PathVariable long postId,
             @PathVariable Long commentId
     ) {
         Post post = postService.findById(commentId);
 
         PostComment postComment = post.findCommentById(commentId).get();
-        return commentId + " 댓글이 삭제 되었습니다.";
+
+        postService.deleteComment(post, postComment);
+
+        Map<String, Object> rsData = new LinkedHashMap<>();
+        rsData.put("resultCode", 200);
+        rsData.put("msg", "%d 댓글이 삭제되었습니다.");
+        return rsData;
     }
 }
