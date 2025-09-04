@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +31,7 @@ public class PostService {
         return postRepository.findAll();
     }
 
-    public Post getPost(Long id) {
+    public Post findById(Long id) {
         return postRepository.findById(id).orElseThrow(
                 () -> new RuntimeException("게시글이 존재하지 않습니다.")
         );
@@ -41,6 +42,7 @@ public class PostService {
                 () -> new RuntimeException("게시글이 존재하지 않습니다.")
         );
     }
+
 
 
 }

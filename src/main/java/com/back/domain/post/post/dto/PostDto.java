@@ -6,19 +6,24 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-@Getter
-public class PostDto {
-    private long id;
-    private LocalDateTime createdDate;
-    private LocalDateTime modifiedDate;
-    private String subject;
-    private String body;
 
+public record PostDto(
+        long id,
+        LocalDateTime createDate,
+        LocalDateTime modifyDate,
+        String title,
+        String content
+
+) {
     public PostDto(Post post) {
-        this.id = post.getId();
-        this.createdDate = post.getCreateDate();
-        this.modifiedDate = post.getUpdateDate();
-        this.subject = post.getTitle();
-        this.body = post.getContent();
+
+        this(
+                post.getId(),
+                post.getCreateDate(),
+                post.getUpdateDate(),
+                post.getTitle(),
+                post.getContent()
+        );
     }
+
 }
