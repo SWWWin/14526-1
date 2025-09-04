@@ -7,10 +7,7 @@ import com.back.domain.post.postComment.entity.PostComment;
 import com.back.global.rsData.RsData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,7 +35,7 @@ public class ApiV1PostCommentController {
     }
 
     @Transactional(readOnly = true)
-    @GetMapping("{commentId}")
+    @GetMapping("/{commentId}")
     public PostCommentDto getComment(@PathVariable Long postId, @PathVariable Long commentId) {
         Post item = postService.findById(postId);
         PostComment postComment = item.findCommentById(commentId).get();
@@ -46,8 +43,8 @@ public class ApiV1PostCommentController {
     }
 
     @Transactional
-    @GetMapping("/{commentId}/delete")
-    public RsData delete(
+    @DeleteMapping("/{commentId}")
+    public RsData<PostCommentDto> delete(
             @PathVariable long postId,
             @PathVariable Long commentId
     ) {
@@ -57,6 +54,6 @@ public class ApiV1PostCommentController {
 
         postService.deleteComment(post, postComment);
 
-        return new RsData("200-1", "%d 댓글이 삭제되었습니다.".formatted(commentId), new PostCommentDto(postComment));
+        return new RsData<>("200-1", "%d 댓글이 삭제되었습니다.".formatted(commentId), new PostCommentDto(postComment));
     }
 }
