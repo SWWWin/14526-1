@@ -1,6 +1,7 @@
 package com.back.domain.post.post.controller;
 
 import com.back.domain.post.post.dto.PostDto;
+import com.back.domain.post.post.dto.PostWriteReqBody;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import com.back.domain.post.postComment.dto.PostCommentDto;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RequestMapping("/api/v1/posts")
@@ -53,22 +55,16 @@ public class ApiV1PostController {
         return new  RsData<>("200-1", "%d 번 게시글이 삭제되었습니다.".formatted(id));
     }
 
-    record PostWriteForm(
-            @NotBlank
-            @Size(min = 2, max = 100)
-            String title,
 
-            @NotBlank
-            @Size(min = 2, max = 100)
-            String content
-    ) {
-
-    }
     @Transactional
     @PostMapping()
-    public RsData write(@RequestBody PostWriteForm form) {
-        Post post = postService.create(form.title, form.content);
-
-        return new RsData("200-1", "%d번 게시글이 생성되었습니다.".formatted(post.getId()), new PostDto(post));
+    public RsData<Map<String, Object>> write(@RequestBody PostWriteReqBody form) {
+        Post post = postService.create(form.title(), form.content());
+        long totalCount = postService.count();
+        Map<String, Object> data = Map.of(
+                "totalCount", totalCount,
+                "post", new PostDto(post)
+        );
+        return new RsData<>("200-1", "%d번 게시글이 생성되었습니다.".formatted(post.getId()), data);
     }
 }
