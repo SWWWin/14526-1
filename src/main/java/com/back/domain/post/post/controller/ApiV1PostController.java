@@ -11,6 +11,8 @@ import com.back.global.rsData.RsData;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,11 +61,14 @@ public class ApiV1PostController {
 
     @Transactional
     @PostMapping()
-    public RsData<PostWriteResBody> write(@RequestBody PostWriteReqBody form) {
+    public ResponseEntity write(@RequestBody PostWriteReqBody form) {
         Post post = postService.create(form.title(), form.content());
         long totalCount = postService.count();
-        return new RsData<>("200-1",
-                "%d번 게시글이 생성되었습니다.".formatted(post.getId()),
-                new PostWriteResBody(totalCount, new PostDto(post)));
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("성공적으로 등록되었습니다.");
+//        return new RsData<>("200-1",
+//                "%d번 게시글이 생성되었습니다.".formatted(post.getId()),
+//                new PostWriteResBody(totalCount, new PostDto(post)));
     }
 }
