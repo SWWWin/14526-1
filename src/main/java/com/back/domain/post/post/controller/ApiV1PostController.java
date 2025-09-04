@@ -5,7 +5,6 @@ import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import com.back.domain.post.postComment.dto.PostCommentDto;
 import com.back.domain.post.postComment.entity.PostComment;
-import com.back.global.rsData.ForPostRsData;
 import com.back.global.rsData.RsData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -44,11 +43,11 @@ public class ApiV1PostController {
 
     @Transactional
     @GetMapping("/{id}/delete")
-    public ForPostRsData delete(@PathVariable Long id) {
+    public RsData delete(@PathVariable Long id) {
         Post post = postService.findById(id);
 
         postService.delete(post);
 
-        return new  ForPostRsData("200-1", "%d 번 게시글이 삭제되었습니다.".formatted(id), new PostDto(post));
+        return new  RsData("200-1", "%d 번 게시글이 삭제되었습니다.".formatted(id), new PostDto(post));
     }
 }
