@@ -14,9 +14,8 @@ import java.util.List;
 public class PostService {
     private final PostRepository postRepository;
 
-    public Post create(long title, PostDto content) {
-        Post post = new Post(title, content);
-        return postRepository.save(post);
+    public Post create(String title, String content) {
+        return postRepository.save(new Post(title, content));
     }
 
     public long count() {
@@ -32,36 +31,26 @@ public class PostService {
     }
 
     public Post findById(Long id) {
-        return postRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("게시글이 존재하지 않습니다.")
-        );
+        return postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
     }
 
     public Post findByTitle(String title) {
-        return postRepository.findByTitle(title).orElseThrow(
-                () -> new RuntimeException("게시글이 존재하지 않습니다.")
-        );
+        return postRepository.findByTitle(title)
+                .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
     }
 
     public void createComment(Post post, String content) {
-        // Post.addComment 내부에서 자식(PostComment)에 this(post)를 세팅
-        // cascade=PERSIST 옵션 덕분에 부모 저장 시 자식도 함께 INSERT 가능
         post.addComment(content);
     }
 
     public boolean deleteComment(Post post, PostComment postComment) {
-        // 여기서 deleteComment는 단순히 post.getComments().remove(postComment) 호출
-        // 하지만 Post.comments 매핑에 orphanRemoval=true가 걸려있기 때문에
-        // 컬렉션에서 제거된 PostComment는 "고아 객체"로 간주 → flush/commit 시 DELETE SQL 실행
-        // 즉, 별도로 postCommentRepository.delete(...)를 호출하지 않아도 DB에서 삭제됨
         return post.deleteComment(postComment);
     }
 
-    public void modify(PostComment postComment, String content) {
-        // 자식 엔티티(PostComment)의 필드 변경 → 더티 체킹에 의해 UPDATE 실행
+    public void modifyComment(PostComment postComment, String content) {
         postComment.modify(content);
     }
-
 
     public void delete(Post post) {
         postRepository.delete(post);
