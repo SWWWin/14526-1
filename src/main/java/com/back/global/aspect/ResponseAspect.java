@@ -17,17 +17,18 @@ public class ResponseAspect {
     }
 
     @Around("""
-            (
-                                within(@org.springframework.web.bind.annotation.RestController *) &&
-                                (
-                                    @annotation(org.springframework.web.bind.annotation.GetMapping) ||
-                                    @annotation(org.springframework.web.bind.annotation.PostMapping) ||
-                                    @annotation(org.springframework.web.bind.annotation.PutMapping) ||
-                                    @annotation(org.springframework.web.bind.annotation.DeleteMapping) ||
-                                    @annotation(org.springframework.web.bind.annotation.RequestMapping)
-                                )
-                            ) ||
-                            @annotation(org.springframework.web.bind.annotation.ResponseBody)
+            execution(public com.back.global.rsData.RsData *(..)) &&
+                            (
+                                within(@org.springframework.stereotype.Controller *) ||
+                                within(@org.springframework.web.bind.annotation.RestController *)
+                            ) &&
+                            (
+                                @annotation(org.springframework.web.bind.annotation.GetMapping) ||
+                                @annotation(org.springframework.web.bind.annotation.PostMapping) ||
+                                @annotation(org.springframework.web.bind.annotation.PutMapping) ||
+                                @annotation(org.springframework.web.bind.annotation.DeleteMapping) ||
+                                @annotation(org.springframework.web.bind.annotation.RequestMapping)
+                            )
             """)
     public Object handleResponse(ProceedingJoinPoint joinPoint) throws Throwable {
 
@@ -35,14 +36,8 @@ public class ResponseAspect {
         Object proceed = joinPoint.proceed();
 
         //반환 객체가 RsData type일 경우
-        if(proceed instanceof RsData) {
-            RsData<?> rsData = (RsData<?>) proceed;
-
-            //RsData가 가진 statusCode() 값을 HTTP 응답 상태 코드로 변경
-            response.setStatus(rsData.statusCode());
-
-            //컨트롤러의 ㅜ언래 반환값 그대로 반환
-        }
+        RsData rsData = (RsData<?>) proceed;
+        response.setStatus(rsData.statusCode());
 
         return proceed;
     }

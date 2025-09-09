@@ -12,4 +12,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Optional<Post> findByTitle(String title);
 
     Long id(long id);
+
+    Optional<Post> findFirstByOrderByIdDesc();
 }
