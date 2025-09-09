@@ -15,6 +15,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -157,11 +159,26 @@ public class ApiV1PostControllerTest {
                         get("/api/v1/posts")
                 )
                 .andDo(print());
+
+        List<Post> posts =  postService.getList();
+
         resultActions
                 .andExpect(handler().handlerType(ApiV1PostController.class))
                 .andExpect(status().isOk())
-                .andExpect(handler().methodName("getItems"));
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(jsonPath("$.length()").value(posts.size()))
+        ;
 
+        for (int i = 0; i < posts.size(); i++) {
+            Post post = posts.get(i);
+
+            resultActions
+                    .andExpect(jsonPath("$[%d].id".formatted(i)).value(post.getId()))
+                    .andExpect(jsonPath("$[%d].createDate".formatted(i)).value(Matchers.startsWith(post.getCreateDate().toString().substring(0,20))))
+                    .andExpect(jsonPath("$[%d].modifyDate".formatted(i)).value(Matchers.startsWith(post.getUpdateDate().toString().substring(0,20))))
+                    .andExpect(jsonPath("$[%d].content".formatted(i)).value(post.getContent()))
+                    .andExpect(jsonPath("$[%d].title".formatted(i)).value(post.getTitle()));
+        }
 
     }
 
