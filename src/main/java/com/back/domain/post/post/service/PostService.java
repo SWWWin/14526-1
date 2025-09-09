@@ -32,8 +32,7 @@ public class PostService {
     }
 
     public Post findById(Long id) {
-        return postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
+        return postRepository.findById(id).get();
     }
 
     public Post findByTitle(String title) {
