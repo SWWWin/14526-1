@@ -47,12 +47,12 @@ public class ApiV1PostController {
 
     @PostMapping
     @Transactional
-    public RsData<PostWriteResBody> write(@Valid @RequestBody PostWriteReqBody form) {
+    public RsData<PostDto> write(@Valid @RequestBody PostWriteReqBody form) {
         Post post = postService.create(form.title(), form.content());
         return new RsData<>(
                 "201-1",
                 "%d번 게시글이 작성되었습니다.".formatted(post.getId()),
-                new PostWriteResBody(postService.count(), new PostDto(post))
+                new PostDto(post)
         );
     }
 
