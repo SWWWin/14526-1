@@ -1,16 +1,21 @@
 package com.back.domain.post.postComment.dto;
 
-import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.postComment.entity.PostComment;
 
+import java.time.LocalDateTime;
+
 public record PostCommentDto (
-        String content,
-        Post post
-){
+        long id,
+        LocalDateTime createDate,
+        LocalDateTime modifyDate,
+        String content
+) {
     public PostCommentDto(PostComment postComment) {
         this(
-                postComment.getContent(),
-                postComment.getPost()
+                postComment.getId(),
+                postComment.getCreateDate(),
+                postComment.getUpdateDate(),
+                postComment.getContent()
         );
     }
 }

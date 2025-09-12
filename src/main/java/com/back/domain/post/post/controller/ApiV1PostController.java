@@ -7,6 +7,8 @@ import com.back.domain.post.post.dto.PostWriteResBody;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import com.back.global.rsData.RsData;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jdk.jfr.Frequency;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +21,13 @@ import java.util.List;
 @RequestMapping("/api/v1/posts")
 @RestController
 @RequiredArgsConstructor
+@Tag(name="ApiV1PostController", description="API 글 컨트롤러")
 public class ApiV1PostController {
     private final PostService postService;
 
     @Transactional(readOnly = true)
-    @GetMapping
+    @GetMapping(produces = "application/json")
+    @Operation(summary = "다건")
     public List<PostDto> getItems() {
         return postService.getList()
                 .stream()
@@ -33,12 +37,14 @@ public class ApiV1PostController {
 
     @Transactional(readOnly = true)
     @GetMapping("/{id}")
+    @Operation(summary = "단건")
     public PostDto getItem(@PathVariable Long id) {
         return new PostDto(postService.findById(id));
     }
 
     @Transactional
     @DeleteMapping("/{id}")
+    @Operation(summary = "삭제")
     public RsData<Void> delete(@PathVariable Long id) {
         Post post = postService.findById(id);
         postService.delete(post);
@@ -47,6 +53,7 @@ public class ApiV1PostController {
 
     @PostMapping
     @Transactional
+    @Operation(summary = "생성")
     public RsData<PostDto> write(@Valid @RequestBody PostWriteReqBody form) {
         Post post = postService.create(form.title(), form.content());
         return new RsData<>(
@@ -59,6 +66,7 @@ public class ApiV1PostController {
 
     @PutMapping("/{id}")
     @Transactional
+    @Operation(summary = "수정")
     public RsData<Void> modify(
             @PathVariable long id,
             @Valid @RequestBody PostModifyReqBody reqBody

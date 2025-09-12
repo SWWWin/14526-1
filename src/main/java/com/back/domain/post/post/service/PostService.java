@@ -4,6 +4,8 @@ import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.repository.PostRepository;
 import com.back.domain.post.postComment.entity.PostComment;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -58,5 +60,13 @@ public class PostService {
 
     public Optional<Post> findLatest() {
         return postRepository.findFirstByOrderByIdDesc();
+    }
+
+    public PostComment writeComment(Post post, String content) {
+        return post.addComment(content);
+    }
+
+    public void flush(){
+        postRepository.flush();
     }
 }

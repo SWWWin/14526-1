@@ -1,27 +1,64 @@
 package com.back.global.globalExceptionHandler;
 
 import com.back.global.rsData.RsData;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.util.Comparator;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
-import static ch.qos.logback.core.util.AggregationType.NOT_FOUND;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
-@ControllerAdvice// 전처리의 개념
-@RequiredArgsConstructor
+@ControllerAdvice
 public class GlobalExceptionHandler {
-
     @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<RsData<Object>> handle() {
+    public ResponseEntity<RsData<Void>> handle(NoSuchElementException e) {
         return new ResponseEntity<>(
                 new RsData<>(
                         "404-1",
-                        "해당 데이터가 존재하지 않습니다."
+                        "존재하지 않는 데이터에 접근했습니다."
                 ),
-                HttpStatus.NOT_FOUND
+                NOT_FOUND
         );
     }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<RsData<Void>> handle(MethodArgumentNotValidException e) {
+        String message = e.getBindingResult()
+                .getAllErrors()
+                .stream()
+                .filter(error -> error instanceof FieldError)
+                .map(error -> (FieldError) error)
+                .map(error -> error.getField() + "-" + error.getCode() + "-" + error.getDefaultMessage())
+                .sorted(Comparator.comparing(String::toString))
+                .collect(Collectors.joining("\n"));
+
+        return new ResponseEntity<>(
+                new RsData<>(
+                        "400-1",
+                        message
+                ),
+                BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<RsData<Void>> handle(HttpMessageNotReadableException e) {
+
+        return new ResponseEntity<>(
+                new RsData<>(
+                        "400-1",
+                        "형식이 잘못되었습니다."
+                ),
+                BAD_REQUEST
+        );
+    }
+
 }

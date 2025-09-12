@@ -1,0 +1,29 @@
+package com.back.global.springdoc;
+
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Info;
+import org.springdoc.core.models.GroupedOpenApi;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@OpenAPIDefinition(info = @Info(title ="API 서버", version="v1", description = "API 서버 문서입니다."))
+public class SpringDocConfig {
+    @Bean
+    public GroupedOpenApi groupApiV1() {
+        return GroupedOpenApi.builder()
+                .group("apiV1")
+                .pathsToMatch("/api/v1/**") //apI/v1/ 경로 포함
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi groupController() {
+        return GroupedOpenApi.builder()
+                .group("non-api")
+                .packagesToExclude("/api/**") //apI 경로 제외
+                .pathsToMatch("/**")
+                .build();
+    }
+
+}
