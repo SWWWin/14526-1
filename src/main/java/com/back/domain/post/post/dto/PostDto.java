@@ -11,6 +11,7 @@ public record PostDto(
         long id,
         LocalDateTime createDate,
         LocalDateTime modifyDate,
+        String authorName,
         String title,
         String content
 
@@ -21,6 +22,7 @@ public record PostDto(
                 post.getId(),
                 post.getCreateDate(),
                 post.getUpdateDate(),
+                post.getAuthor().getNickname(),
                 post.getTitle(),
                 post.getContent()
         );

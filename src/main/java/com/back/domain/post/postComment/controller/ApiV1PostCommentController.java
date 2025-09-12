@@ -1,5 +1,7 @@
 package com.back.domain.post.postComment.controller;
 
+import com.back.domain.member.member.emtity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.dto.PostWriteReqBody;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
@@ -25,6 +27,7 @@ import java.util.Objects;
 @Tag(name="ApiV1PostController", description="API 글 댓글 컨트롤러")
 public class ApiV1PostCommentController {
     private final PostService postService;
+    private final MemberService memberService;
 
     @Transactional(readOnly = true)
     @GetMapping
@@ -99,7 +102,8 @@ public class ApiV1PostCommentController {
         //
         postService.flush();
 
-        PostComment postComment = postService.writeComment(post, reqBody.content());
+        Member author = memberService.findByUsername("user1").get();
+        PostComment postComment = postService.writeComment(author, post, reqBody.content());
         return new RsData<>(
                 "201-1",
                 "%d번 댓글이 작성되었습니다.".formatted(postComment.getId()),

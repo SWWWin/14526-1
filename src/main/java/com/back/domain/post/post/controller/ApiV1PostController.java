@@ -1,5 +1,7 @@
 package com.back.domain.post.post.controller;
 
+import com.back.domain.member.member.emtity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.dto.PostModifyReqBody;
 import com.back.domain.post.post.dto.PostWriteReqBody;
@@ -24,6 +26,7 @@ import java.util.List;
 @Tag(name="ApiV1PostController", description="API 글 컨트롤러")
 public class ApiV1PostController {
     private final PostService postService;
+    private final MemberService memberService;
 
     @Transactional(readOnly = true)
     @GetMapping(produces = "application/json")
@@ -55,7 +58,8 @@ public class ApiV1PostController {
     @Transactional
     @Operation(summary = "생성")
     public RsData<PostDto> write(@Valid @RequestBody PostWriteReqBody form) {
-        Post post = postService.create(form.title(), form.content());
+        Member author = memberService.findByUsername("user1").get();
+        Post post = postService.create(author, form.title(), form.content());
         return new RsData<>(
                 "201-1",
                 "%d번 게시글이 작성되었습니다.".formatted(post.getId()),
