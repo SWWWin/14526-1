@@ -1,5 +1,7 @@
 package com.back.domain.post.post.controller;
 
+import com.back.domain.member.member.emtity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import com.back.domain.post.postComment.controller.ApiV1PostCommentController;
@@ -33,18 +35,25 @@ public class ApiV1PostControllerTest {
     @Autowired
     private PostService postService;
 
+    @Autowired
+    private MemberService memberService;
+
     //글쓰기 테스트
     @Test
     @DisplayName("글 쓰기")
     void t1() throws Exception{
+        Member member = memberService.findByUsername("user1").get();
+
+        String authorApiKey = member.getApiKey();
+
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts")
+                        post("/api/v1/posts?apiKey=" + authorApiKey)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
                                         "title": "제목 new",
-                                        "content": "내용 new"
+                                        "comment": "내용 new"
                                         }
                                         """)
                 )
@@ -58,7 +67,7 @@ public class ApiV1PostControllerTest {
                 .andExpect(handler().methodName("write"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.resultCode").value("201-1"))
-                .andExpect(jsonPath("$.msg").value("%d번 게시글이 작성되었습니다.".formatted(post.getId())))
+                .andExpect(jsonPath("$.msg").value("%d번 게시글이 생성되었습니다.".formatted(post.getId())))
                 .andExpect(jsonPath("$.data.id").value(post.getId()))
                 .andExpect(jsonPath("$.data.createDate")
                         .value(Matchers.startsWith(post.getCreateDate().toString().substring(0, 20))))

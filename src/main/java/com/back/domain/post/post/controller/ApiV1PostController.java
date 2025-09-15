@@ -65,9 +65,7 @@ public class ApiV1PostController {
     public RsData<PostDto> write(
             @Valid @RequestBody PostWriteReqBody reqBody,
             @RequestParam("apiKey")
-            @NotBlank @Size(min = 2, max = 50) String apiKey,
-            @RequestParam("password")
-            @NotBlank @Size(min = 2, max = 30) String password
+            @NotBlank @Size(min = 2, max = 50) String apiKey
     ) {
         Member author = memberService.findByApiKey(apiKey).orElseThrow(() ->
                 new ServiceException("404-1", "존재하지 않는 회원입니다.")
