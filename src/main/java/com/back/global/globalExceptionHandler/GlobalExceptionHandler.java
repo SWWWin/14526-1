@@ -1,5 +1,6 @@
 package com.back.global.globalExceptionHandler;
 
+import com.back.global.exception.ServiceException;
 import com.back.global.rsData.RsData;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -61,4 +62,11 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(ServiceException.class)
+    public ResponseEntity<RsData<Void>> handle(ServiceException e) {
+        return new ResponseEntity<>(
+          e.getRsData(),
+          BAD_REQUEST
+        );
+    }
 }
