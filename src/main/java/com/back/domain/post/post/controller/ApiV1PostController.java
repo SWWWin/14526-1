@@ -12,14 +12,18 @@ import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import jdk.jfr.Frequency;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RequestMapping("/api/v1/posts")
 @RestController
 @RequiredArgsConstructor
@@ -57,8 +61,9 @@ public class ApiV1PostController {
     @PostMapping
     @Transactional
     @Operation(summary = "생성")
-    public RsData<PostDto> write(@Valid @RequestBody PostWriteReqBody form) {
-        Member author = memberService.findByUsername("user1").get();
+    public RsData<PostDto> write(@Valid @RequestBody PostWriteReqBody form,
+                                 @RequestParam @NotBlank @Size(min = 2, max = 100) String username) {
+        Member author = memberService.findByUsername(username).get();
         Post post = postService.create(author, form.title(), form.content());
         return new RsData<>(
                 "201-1",
