@@ -60,14 +60,24 @@ public class ApiV1PostController {
 
     @PostMapping
     @Transactional
-    @Operation(summary = "생성")
-    public RsData<PostDto> write(@Valid @RequestBody PostWriteReqBody form,
-                                 @RequestParam @NotBlank @Size(min = 2, max = 100) String username) {
+    @Operation(summary = "작성")
+    public RsData<PostDto> write(
+            @Valid @RequestBody PostWriteReqBody reqBody,
+            @RequestParam("username")
+            @NotBlank @Size(min = 2, max = 30) String username,
+            @RequestParam("password")
+            @NotBlank @Size(min = 2, max = 30) String password
+    ) {
         Member author = memberService.findByUsername(username).get();
-        Post post = postService.create(author, form.title(), form.content());
+
+        if(!author.getPassword().equals(password)) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+        Post post = postService.create(author, reqBody.title(), reqBody.comment());
+
         return new RsData<>(
                 "201-1",
-                "%d번 게시글이 작성되었습니다.".formatted(post.getId()),
+                "%d번 게시글이 생성되었습니다.".formatted(post.getId()),
                 new PostDto(post)
         );
     }

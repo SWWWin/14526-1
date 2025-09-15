@@ -80,7 +80,7 @@ public class ApiV1PostCommentController {
         Post post = postService.findById(postId);
 
         PostComment postComment = post.findCommentById(id).get();
-        postService.modifyComment(postComment, postWriteReqBody.content());
+        postService.modifyComment(postComment, postWriteReqBody.comment());
 
         return new RsData<>(
                 "200-1",

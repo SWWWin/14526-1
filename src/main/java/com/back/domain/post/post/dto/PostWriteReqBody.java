@@ -4,10 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record PostWriteReqBody(
-        @NotBlank
-        @Size(min = 2, max = 100)
+        @NotBlank @Size(min = 2, max = 100)
         String title,
-        @NotBlank
-        @Size(min = 2, max = 2000)
-        String content
+        @NotBlank @Size(min = 2, max = 2000)
+        String comment
 ) {}
