@@ -1,7 +1,6 @@
 package com.back.domain.post.post.entity;
 
-import com.back.domain.member.member.emtity.Member;
-import com.back.domain.post.post.dto.PostDto;
+import com.back.domain.member.member.entity.Member;
 import com.back.domain.post.postComment.entity.PostComment;
 import com.back.global.jpa.entity.BaseEntity;
 import jakarta.persistence.Entity;
