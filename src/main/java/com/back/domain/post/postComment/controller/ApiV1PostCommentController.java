@@ -58,11 +58,22 @@ public class ApiV1PostCommentController {
     @Operation(summary = "댓글 삭제")
     public RsData<PostCommentDto> delete(
             @PathVariable long postId,
-            @PathVariable Long commentId
+            @PathVariable Long commentId,
+            @NotBlank @Size(min = 2, max = 50) @RequestHeader("Authorization") String authorization
     ) {
+
+        String apiKey = authorization.replace("Bearer " ,"");
+
+        Member author = memberService.findByApiKey(apiKey)
+                .orElseThrow(() -> new ServiceException("401-1", "존재하지 않는 회원입니다."));
+
         Post post = postService.findById(commentId);
 
         PostComment postComment = post.findCommentById(commentId).get();
+
+        if(!author.equals(postComment.getAuthor())) {
+            throw new ServiceException("403-1", "댓글 삭제 권한이 없습니다.");
+        }
 
         postService.deleteComment(post, postComment);
 
@@ -87,6 +98,10 @@ public class ApiV1PostCommentController {
         Post post = postService.findById(postId);
 
         PostComment postComment = post.findCommentById(id).get();
+
+        if(!author.equals(postComment.getAuthor())) {
+            throw new ServiceException("403-1", "댓글 수정 권한이 없습니다.");
+        }
         postService.modifyComment(postComment, postWriteReqBody.content());
 
         return new RsData<>(
@@ -101,15 +116,20 @@ public class ApiV1PostCommentController {
     @Operation(summary = "댓글 생성")
     public RsData Write(
             @PathVariable long postId,
-            @Valid @RequestBody PostCommentWriteReqBody reqBody
+            @Valid @RequestBody PostCommentWriteReqBody reqBody,
+            @NotBlank @Size(min = 2, max = 50) @RequestHeader("Authorization") String authorization
     ) {
+
+
+        String apiKey = authorization.replace("Bearer " ,"");
+
+        Member author = memberService.findByApiKey(apiKey)
+                .orElseThrow(() -> new ServiceException("401-1", "존재하지 않는 회원입니다."));
 
         Post post = postService.findById(postId);
 
-        //
-        postService.flush();
 
-        Member author = memberService.findByUsername("user1").get();
+        postService.flush();
         PostComment postComment = postService.writeComment(author, post, reqBody.content());
         return new RsData<>(
                 "201-1",

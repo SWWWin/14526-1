@@ -109,10 +109,14 @@ public class ApiV1PostCommentControllerTest {
         long postId = 1;
         long id = 1;
 
+        Post post = postService.findById(postId);
+        String apiKey = post.getAuthor().getApiKey();
+
         //요청을 보냅니다.
         ResultActions resultActions = mvc
                 .perform(
                         delete("/api/v1/posts/%d/comments/%d".formatted(postId, id))
+                                .header("Authorization", "Bearer " + apiKey)
                 )
                 .andDo(print()); // 응답을 출력합니다.
 
@@ -123,7 +127,8 @@ public class ApiV1PostCommentControllerTest {
                 .andExpect(handler().handlerType(ApiV1PostCommentController.class))
                 .andExpect(handler().methodName("delete"))
                 .andExpect(jsonPath("$.resultCode").value("200-1"))
-                .andExpect(jsonPath("$.msg").value("%d 댓글이 삭제되었습니다.".formatted(id)));
+                .andExpect(jsonPath("$.msg").value("%d 댓글이 삭제되었습니다.".formatted(id)))
+                .andExpect(handler().methodName("delete"));
 
     }
 
@@ -133,11 +138,15 @@ public class ApiV1PostCommentControllerTest {
         long postId = 1;
         long id = 1;
 
+        Post post = postService.findById(postId);
+        String apiKey = post.getAuthor().getApiKey();
+
         //요청을 보냅니다.
         ResultActions resultActions = mvc
                 .perform(
                         put("/api/v1/posts/%d/comments/%d".formatted(postId, id))
                                 .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization", "Bearer " + apiKey)
                                 .content("""
                                         {
                                                                                 "title": "제목 new",
