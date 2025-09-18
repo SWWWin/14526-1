@@ -163,11 +163,14 @@ public class ApiV1PostCommentControllerTest {
     void t5() throws Exception {
         long postId = 1;
 
+        Post post = postService.findById(postId);
+        String apiKey = post.getAuthor().getApiKey();
         //요청을 보냅니다.
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/posts/%d/comments".formatted(postId))
                                 .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization", "Bearer " + apiKey)
                                 .content("""
                                         {
                                             "content": "내용 new"
@@ -176,7 +179,6 @@ public class ApiV1PostCommentControllerTest {
                 )
                 .andDo(print()); // 응답을 출력합니다.
 
-        Post post = postService.findById(postId);
         PostComment postComment = post.getComments().getLast();
 
         // 201 Created 상태코드 검증
