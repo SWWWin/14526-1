@@ -42,16 +42,17 @@ public class ApiV1PostControllerTest {
     void t1() throws Exception{
         Member member = memberService.findByUsername("user1").get();
 
-        String authorApiKey = member.getApiKey();
+        String apiKey = member.getApiKey();
 
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts?apiKey=" + authorApiKey)
+                        post("/api/v1/posts")
                                 .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization", "Bearer " + apiKey)
                                 .content("""
                                         {
                                         "title": "제목 new",
-                                        "comment": "내용 new"
+                                        "content": "내용 new"
                                         }
                                         """)
                 )
@@ -73,7 +74,7 @@ public class ApiV1PostControllerTest {
                         .value(post.getAuthor().getNickname())) // ← 괄호 닫힘
                 .andExpect(jsonPath("$.data.modifyDate")
                         .value(Matchers.startsWith(post.getUpdateDate().toString().substring(0, 20))))
-                .andExpect(jsonPath("$.data.content").value(post.getContent()))
+                .andExpect(jsonPath("$.data.comment").value(post.getContent()))
                 .andExpect(jsonPath("$.data.title").value(post.getTitle()));
 
     }
@@ -84,11 +85,15 @@ public class ApiV1PostControllerTest {
     void t2() throws Exception{
         long id = 1;
 
+        Post post = postService.findById(id);
+        String apiKey = post.getAuthor().getApiKey();
+
         //요청을 보냄
         ResultActions resultActions = mvc
                 .perform(
                         put("/api/v1/posts/" + id)
                                 .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization", "Bearer " + apiKey)
                                 .content("""
                                         {
                                         "title": "제목 update",
@@ -106,7 +111,7 @@ public class ApiV1PostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(handler().methodName("modify"))
                 .andExpect(jsonPath("$.resultCode").value("200-1"))
-                .andExpect(jsonPath("$.msg").value("%d번 게시글이 작성되었습니다.".formatted(id)))
+                .andExpect(jsonPath("$.msg").value("%d번 게시글이 수정되었습니다.".formatted(id)))
         //        Post post = postService.findById(id);
 //
 //        assertThat(post.getTitle().equals("제목 update"));
