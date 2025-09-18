@@ -61,14 +61,14 @@ public class ApiV1PostController {
     @Operation(summary = "작성")
     public RsData<PostDto> write(
             @Valid @RequestBody PostWriteReqBody reqBody,
-            @RequestParam("apiKey")
-            @NotBlank @Size(min = 2, max = 50) String apiKey
+            @NotBlank @Size(min = 2, max = 50) @RequestHeader("Authorization") String authorization
     ) {
-        Member author = memberService.findByApiKey(apiKey).orElseThrow(() ->
-                new ServiceException("404-1", "존재하지 않는 회원입니다.")
-        );
+        String apiKey = authorization.replace("Bearer ", "");
 
-        Post post = postService.create(author, reqBody.title(), reqBody.comment());
+        Member author = memberService.findByApiKey(apiKey)
+                .orElseThrow(() -> new ServiceException("401-1", "존재하지 않는 회원입니다."));
+
+        Post post = postService.create(author, reqBody.title(), reqBody.content());
 
         return new RsData<>(
                 "201-1",

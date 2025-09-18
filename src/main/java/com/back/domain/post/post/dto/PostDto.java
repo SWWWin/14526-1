@@ -13,7 +13,7 @@ public record PostDto(
         LocalDateTime modifyDate,
         String authorName,
         String title,
-        String content
+        String comment
 
 ) {
     public PostDto(Post post) {

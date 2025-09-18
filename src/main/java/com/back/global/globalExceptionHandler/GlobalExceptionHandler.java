@@ -8,6 +8,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -70,5 +71,16 @@ public class GlobalExceptionHandler {
         response.setStatus(rsData.statusCode());
         
         return rsData;
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<RsData<Void>> handle(MissingRequestHeaderException e) {
+        return new ResponseEntity<>(
+                new RsData<> (
+                        "400-1",
+                        "회원정보를 찾을 수 없습니다."
+                ),
+                BAD_REQUEST
+        );
     }
 }

@@ -2,6 +2,7 @@ package com.back.domain.member.member.service;
 
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.repository.MemberRepository;
+import com.back.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,10 @@ public class MemberService {
 
     public Member join(String username, String password, String nickname) {
         Member member = new Member(username, password, nickname);
-
+        memberRepository.findByUsername(username)
+                .ifPresent(_member -> {
+                    throw new ServiceException("409-1", "이미 존자해는 회원입니다.");
+                });
         return memberRepository.save(member);
     }
 
