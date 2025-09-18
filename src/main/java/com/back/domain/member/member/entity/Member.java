@@ -5,12 +5,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.UUID;
 
 @Entity
 @Getter
 @NoArgsConstructor
+@ToString
 public class Member extends BaseEntity {
 
     @Column(unique = true)
