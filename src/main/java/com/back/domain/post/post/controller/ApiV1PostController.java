@@ -29,16 +29,12 @@ import java.util.List;
 @Tag(name="ApiV1PostController", description="API 글 컨트롤러")
 public class ApiV1PostController {
     private final PostService postService;
-    private final MemberService memberService;
     private final Rq rq;
 
     @Transactional(readOnly = true)
     @GetMapping(produces = "application/json")
     @Operation(summary = "다건")
     public List<PostDto> getItems() {
-        System.out.println("memberService: " + memberService);
-        System.out.println("rq: " + rq);
-        System.out.println("rq.getActor: " + rq.getActor());
         return postService.getList()
                 .stream()
                 .map(PostDto::new)
@@ -60,9 +56,8 @@ public class ApiV1PostController {
         Member actor = rq.getActor();
         Post post = postService.findById(id);
 
-        if(!actor.equals(post.getAuthor())) {
-            throw new ServiceException("403-1", "글 삭제 권한이 없습니다.");
-        }
+        post.checkActorCanDelete(actor);
+
         postService.delete(post);
         return new RsData<>("200-1", "%d 번 게시글이 삭제되었습니다.".formatted(id));
     }
@@ -97,10 +92,7 @@ public class ApiV1PostController {
         Post post = postService.findById(id);
         postService.update(post, reqBody.title(), reqBody.content());
 
-        if(!actor.equals(post.getAuthor())) {
-            throw new ServiceException("403-1", "글 수정 권한이 없습니다.");
-        }
-
+        post.checkActorCanModify(actor);
         return new  RsData<>(
                 "200-1",
         "%d번 게시글이 수정되었습니다.".formatted(id)

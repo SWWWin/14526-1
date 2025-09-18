@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
 @Component
-@RequestScope
+        //@RequestScope
 @RequiredArgsConstructor
 public class Rq {
     private final PostService postService;
