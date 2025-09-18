@@ -125,9 +125,13 @@ public class ApiV1PostControllerTest {
     void t3() throws Exception {
         long id = 1;
 
+        Post post = postService.findById(id);
+        String apiKey = post.getAuthor().getApiKey();
+
         ResultActions resultActions = mvc
                 .perform(
                         delete("/api/v1/posts/" + id)
+                                .header("Authorization", "Bearer " + apiKey)
                 )
                 .andDo(print());
 

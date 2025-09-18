@@ -50,8 +50,16 @@ public class ApiV1PostController {
     @Transactional
     @DeleteMapping("/{id}")
     @Operation(summary = "삭제")
-    public RsData<Void> delete(@PathVariable Long id) {
+    public RsData<Void> delete(@PathVariable Long id,
+                               @NotBlank @Size(min = 2, max = 50) @RequestHeader("Authorization") String authorization) {
         Post post = postService.findById(id);
+
+        String apiKey = authorization.replace("Bearer ", "");
+
+        Member author = memberService.findByApiKey(apiKey)
+                .orElseThrow(() -> new ServiceException("401-1", "권한 없음."));
+
+
         postService.delete(post);
         return new RsData<>("200-1", "%d 번 게시글이 삭제되었습니다.".formatted(id));
     }
