@@ -32,4 +32,8 @@ public class PostComment extends BaseEntity {
     public void modify(String content) {
         this.content = content;
     }
+
+    public void checkActorCanDelete() {
+
+    }
 }
