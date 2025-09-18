@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Validated
+
 @RequestMapping("/api/v1/posts")
 @RestController
 @RequiredArgsConstructor
@@ -55,16 +55,14 @@ public class ApiV1PostController {
     @Transactional
     @DeleteMapping("/{id}")
     @Operation(summary = "삭제")
-    public RsData<Void> delete(@PathVariable Long id,
-                               @NotBlank @Size(min = 2, max = 50) @RequestHeader("Authorization") String authorization) {
+    public RsData<Void> delete(@PathVariable Long id) {
+
+        Member actor = rq.getActor();
         Post post = postService.findById(id);
 
-        String apiKey = authorization.replace("Bearer ", "");
-
-        Member author = memberService.findByApiKey(apiKey)
-                .orElseThrow(() -> new ServiceException("401-1", "권한 없음."));
-
-
+        if(!actor.equals(post.getAuthor())) {
+            throw new ServiceException("403-1", "글 삭제 권한이 없습니다.");
+        }
         postService.delete(post);
         return new RsData<>("200-1", "%d 번 게시글이 삭제되었습니다.".formatted(id));
     }
@@ -73,15 +71,11 @@ public class ApiV1PostController {
     @Transactional
     @Operation(summary = "작성")
     public RsData<PostDto> write(
-            @Valid @RequestBody PostWriteReqBody reqBody,
-            @NotBlank @Size(min = 2, max = 50) @RequestHeader("Authorization") String authorization
-    ) {
-        System.out.println("rq.getActor: " + rq.getActor());
+            @Valid @RequestBody PostWriteReqBody reqBody
+            ) {
 
-        Member author = rq.getActor();
-
-        Post post = postService.create(author, reqBody.title(), reqBody.content());
-
+        Member actor = rq.getActor();
+        Post post = postService.create(actor, reqBody.title(), reqBody.content());
         return new RsData<>(
                 "201-1",
                 "%d번 게시글이 생성되었습니다.".formatted(post.getId()),
@@ -95,20 +89,15 @@ public class ApiV1PostController {
     @Operation(summary = "수정")
     public RsData<Void> modify(
             @PathVariable long id,
-            @Valid @RequestBody PostModifyReqBody reqBody,
-            @NotBlank @Size(min = 2, max = 50) @RequestHeader("Authorization") String authorization
+            @Valid @RequestBody PostWriteReqBody reqBody
     ) {
 
-        String apiKey = authorization.replace("Bearer ", "");
-
-        Member author = memberService.findByApiKey(apiKey)
-                .orElseThrow(() -> new ServiceException("401-1", "존재하지 않는 회원입니다."));
-
+        Member actor = rq.getActor();
 
         Post post = postService.findById(id);
-        postService.update(post, "제목 2", "내용 2");
+        postService.update(post, reqBody.title(), reqBody.content());
 
-        if(!author.equals(post.getAuthor())) {
+        if(!actor.equals(post.getAuthor())) {
             throw new ServiceException("403-1", "글 수정 권한이 없습니다.");
         }
 
