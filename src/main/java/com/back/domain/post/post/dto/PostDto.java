@@ -1,11 +1,8 @@
 package com.back.domain.post.post.dto;
 
-
 import com.back.domain.post.post.entity.Post;
 
-
 import java.time.LocalDateTime;
-
 
 public record PostDto(
         long id,
@@ -13,19 +10,16 @@ public record PostDto(
         LocalDateTime modifyDate,
         String authorName,
         String title,
-        String comment
-
+        String content
 ) {
     public PostDto(Post post) {
-
         this(
                 post.getId(),
                 post.getCreateDate(),
-                post.getUpdateDate(),
+                post.getModifyDate(),
                 post.getAuthor().getNickname(),
                 post.getTitle(),
                 post.getContent()
         );
     }
-
 }

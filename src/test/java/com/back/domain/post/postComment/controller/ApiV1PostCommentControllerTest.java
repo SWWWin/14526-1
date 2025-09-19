@@ -2,7 +2,6 @@ package com.back.domain.post.postComment.controller;
 
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
-import com.back.domain.post.postComment.dto.PostCommentDto;
 import com.back.domain.post.postComment.entity.PostComment;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
@@ -55,19 +54,16 @@ public class ApiV1PostCommentControllerTest {
                 .andExpect(handler().handlerType(ApiV1PostCommentController.class))
                 .andExpect(handler().methodName("getItem"))
                 .andExpect(jsonPath("$.id").value(postComment.getId()))
-                .andExpect(jsonPath("$.createDate").value(Matchers.notNullValue()))
-                .andExpect(jsonPath("$.modifyDate").value(Matchers.notNullValue()))
+                .andExpect(jsonPath("$.createDate").value(Matchers.startsWith(postComment.getCreateDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.modifyDate").value(Matchers.startsWith(postComment.getModifyDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.authorName").value(postComment.getAuthor().getNickname()))
                 .andExpect(jsonPath("$.content").value(postComment.getContent()));
-
     }
 
     @Test
     @DisplayName("댓글 조회 다건")
     void t2() throws Exception {
-
         long postId = 1;
-        long id = 1;
 
         //요청을 보냅니다.
         ResultActions resultActions = mvc
@@ -76,41 +72,36 @@ public class ApiV1PostCommentControllerTest {
                 )
                 .andDo(print()); // 응답을 출력합니다.
 
+        Post post = postService.findById(postId);
+        List<PostComment> comments = post.getComments();
 
         // 200 Ok 상태코드 검증
         resultActions
                 .andExpect(status().isOk())
                 .andExpect(handler().handlerType(ApiV1PostCommentController.class))
-                .andExpect(handler().methodName("getItems"));
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(jsonPath("$.length()").value(comments.size()));
 
 
-        Post post = postService.findById(postId);
-        List<PostComment> postComments = post.getComments();
-
-
-        for (int i = 0; i < postComments.size(); i++) {
-            PostComment postComment = post.getComments().get(i);
-
+        for (int i = 0; i < comments.size(); i++) {
+            PostComment postComment = comments.get(i);
             resultActions
                     .andExpect(jsonPath("$[%d].id".formatted(i)).value(postComment.getId()))
-                    .andExpect(jsonPath("$[%d].createDate".formatted(i)).value(Matchers.startsWith(post.getCreateDate().toString().substring(0, 20))))
-                    .andExpect(jsonPath("$[%d].modifyDate".formatted(i)).value(Matchers.startsWith(post.getUpdateDate().toString().substring(0, 20))))
-                    .andExpect(jsonPath("$[%d].content".formatted(i)).value(postComment.getContent()))
-                    .andExpect(jsonPath("$[%d].authorName".formatted(i)).value(postComment.getAuthor().getNickname()));
-
-
+                    .andExpect(jsonPath("$[%d].createDate".formatted(i)).value(Matchers.startsWith(postComment.getCreateDate().toString().substring(0, 20))))
+                    .andExpect(jsonPath("$[%d].modifyDate".formatted(i)).value(Matchers.startsWith(postComment.getModifyDate().toString().substring(0, 20))))
+                    .andExpect(jsonPath("$[%d].authorName".formatted(i)).value(postComment.getAuthor().getNickname()))
+                    .andExpect(jsonPath("$[%d].content".formatted(i)).value(postComment.getContent()));
         }
-
     }
 
     @Test
-    @DisplayName("댓글 삭제 다건")
+    @DisplayName("댓글 삭제")
     void t3() throws Exception {
         long postId = 1;
         long id = 1;
 
-        Post post = postService.findById(postId);
-        String apiKey = post.getAuthor().getApiKey();
+        Post beforePost = postService.findById(postId);
+        String apiKey = beforePost.getAuthor().getApiKey();
 
         //요청을 보냅니다.
         ResultActions resultActions = mvc
@@ -127,19 +118,17 @@ public class ApiV1PostCommentControllerTest {
                 .andExpect(handler().handlerType(ApiV1PostCommentController.class))
                 .andExpect(handler().methodName("delete"))
                 .andExpect(jsonPath("$.resultCode").value("200-1"))
-                .andExpect(jsonPath("$.msg").value("%d 댓글이 삭제되었습니다.".formatted(id)))
-                .andExpect(handler().methodName("delete"));
-
+                .andExpect(jsonPath("$.msg").value("%d번 댓글이 삭제되었습니다.".formatted(id)));
     }
 
     @Test
-    @DisplayName("댓글 수정 다건")
+    @DisplayName("댓글 수정")
     void t4() throws Exception {
         long postId = 1;
         long id = 1;
 
-        Post post = postService.findById(postId);
-        String apiKey = post.getAuthor().getApiKey();
+        Post beforePost = postService.findById(postId);
+        String apiKey = beforePost.getAuthor().getApiKey();
 
         //요청을 보냅니다.
         ResultActions resultActions = mvc
@@ -149,8 +138,7 @@ public class ApiV1PostCommentControllerTest {
                                 .header("Authorization", "Bearer " + apiKey)
                                 .content("""
                                         {
-                                                                                "title": "제목 new",
-                                        "content": "내용 new"
+                                            "content": "내용 new"
                                         }
                                         """)
                 )
@@ -164,7 +152,6 @@ public class ApiV1PostCommentControllerTest {
                 .andExpect(handler().methodName("modify"))
                 .andExpect(jsonPath("$.resultCode").value("200-1"))
                 .andExpect(jsonPath("$.msg").value("%d번 댓글이 수정되었습니다.".formatted(id)));
-
     }
 
     @Test
@@ -172,8 +159,9 @@ public class ApiV1PostCommentControllerTest {
     void t5() throws Exception {
         long postId = 1;
 
-        Post post = postService.findById(postId);
-        String apiKey = post.getAuthor().getApiKey();
+        Post beforePost = postService.findById(postId);
+        String apiKey = beforePost.getAuthor().getApiKey();
+
         //요청을 보냅니다.
         ResultActions resultActions = mvc
                 .perform(
@@ -188,21 +176,20 @@ public class ApiV1PostCommentControllerTest {
                 )
                 .andDo(print()); // 응답을 출력합니다.
 
+        Post post = postService.findById(postId);
         PostComment postComment = post.getComments().getLast();
 
         // 201 Created 상태코드 검증
         resultActions
                 .andExpect(status().isCreated())
                 .andExpect(handler().handlerType(ApiV1PostCommentController.class))
-                .andExpect(handler().methodName("Write"))
+                .andExpect(handler().methodName("write"))
                 .andExpect(jsonPath("$.resultCode").value("201-1"))
                 .andExpect(jsonPath("$.msg").value("%d번 댓글이 작성되었습니다.".formatted(postComment.getId())))
                 .andExpect(jsonPath("$.data.id").value(postComment.getId()))
-//                .andExpect(jsonPath("$.data.createDate").value(Matchers.startsWith(postComment.getCreateDate().toString().substring(0, 20))))
-//                .andExpect(jsonPath("$.data.modifyDate").value(Matchers.startsWith(postComment.getUpdateDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.data.createDate").value(Matchers.startsWith(postComment.getCreateDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.data.modifyDate").value(Matchers.startsWith(postComment.getModifyDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.authorName").value(postComment.getAuthor().getNickname()))
                 .andExpect(jsonPath("$.data.content").value("내용 new"));
-                ;
     }
-
 }

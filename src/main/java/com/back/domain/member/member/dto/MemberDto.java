@@ -17,7 +17,7 @@ public record MemberDto(
         this(
                 member.getId(),
                 member.getCreateDate(),
-                member.getUpdateDate(),
+                member.getModifyDate(),
                 member.getNickname()
         );
     }
