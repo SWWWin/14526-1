@@ -53,7 +53,7 @@ public class ApiV1PostCommentControllerTest {
         resultActions
                 .andExpect(status().isOk())
                 .andExpect(handler().handlerType(ApiV1PostCommentController.class))
-                .andExpect(handler().methodName("getComment"))
+                .andExpect(handler().methodName("getItem"))
                 .andExpect(jsonPath("$.id").value(postComment.getId()))
                 .andExpect(jsonPath("$.createDate").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.modifyDate").value(Matchers.notNullValue()))
