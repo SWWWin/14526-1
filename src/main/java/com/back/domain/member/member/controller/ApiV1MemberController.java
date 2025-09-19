@@ -49,8 +49,11 @@ public class ApiV1MemberController {
             throw new ServiceException("401-2", "비밀번호가 일치하지 않습니다.");
         }
 
+        Cookie cookie = new Cookie("apiKey", member.getNickname());
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        response.addCookie(cookie);
 
-        response.addCookie(new Cookie("apiKey", member.getApiKey()));
         return new RsData<> ("200-1",
                 "%s님 환영합니다.".formatted(member.getNickname()),
                 new MemberLoginResBody(
