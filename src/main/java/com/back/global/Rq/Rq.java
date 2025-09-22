@@ -26,11 +26,11 @@ public class Rq {
 
 
     public Member getActor() {
-        String headerAuthorization = reqest.getHeader("Authorization");
+        String headerAuthorization = getHeader("Authorization", "");
         String apiKey;
 
         //headerAuthroization이 없거나 비어있지 않다면 아래를 탄다
-        if (headerAuthorization != null && !headerAuthorization.isBlank()) {
+        if (!headerAuthorization.isBlank()) {
             if (headerAuthorization.startsWith("Bearer ")) {
                 throw new ServiceException("401-2", "인증 정보가 올바르지 않습니다.");
 
@@ -39,17 +39,7 @@ public class Rq {
 
             //headerAuthorization이 존재하지 않는다면 쿠키에서 apiKey 가지고 오기
         } else {
-            apiKey = Optional
-                    .ofNullable(reqest.getCookies())
-                    .flatMap(
-                            cookies ->
-                                    Arrays.stream(reqest.getCookies())
-                                            .filter(cookie -> "apiKey".equals(cookie.getName()))
-                                            .map(Cookie::getValue)
-                                            .findFirst()
-                    )
-                    .orElse("");
-
+            apiKey = getCookieValue("apiKey", "");
 
         }
 
@@ -61,6 +51,26 @@ public class Rq {
         Member member = memberService.findByApiKey(apiKey)
                 .orElseThrow(() -> new ServiceException("401-3", "회원을 찾을 수 없습니다."));
         return null;
+    }
+
+    private String getHeader(String name, String defaultValue) {
+        return Optional.ofNullable(reqest.getHeader("Authrization"))
+                .filter(headerValue -> !headerValue.isBlank())
+                .orElse(defaultValue);
+    }
+
+    private String getCookieValue(String name, String defalutValue) {
+        return Optional
+                .ofNullable(reqest.getCookies())
+                .flatMap(
+                        cookies ->
+                                Arrays.stream(reqest.getCookies())
+                                        .filter(cookie -> name.equals(cookie.getName()))
+                                        .map(Cookie::getValue)
+                                        .findFirst()
+                )
+                .orElse(defalutValue);
+
     }
 
 
