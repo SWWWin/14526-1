@@ -148,4 +148,34 @@ public class MemberControllerTest {
                 .andExpect(jsonPath("$.data.nickname").value((member.getNickname())))
                 ;
     }
+
+    @Test
+    @DisplayName("내 정보, with apikKey Cookie")
+    void t4() throws Exception {
+
+        Member actor = memberService.findByUsername("user1").get();
+        String apiKey = actor.getApiKey();
+
+        ResultActions resultActions = mvc
+                .perform(
+                        get("/api/v1/members/me")
+                                .cookie(new Cookie("apiKey", apiKey))
+                                                )
+                .andDo(print());
+
+        Member member = memberService.findByUsername("user1").get();
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(handler().methodName("me"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultCode").value("200-1"))
+                .andExpect(jsonPath("$.msg").value("%s님 정보입니다.".formatted(member.getNickname())))
+                .andExpect(jsonPath("$.data").exists())
+                .andExpect(jsonPath("$.data.id").value((member.getId())))
+                .andExpect(jsonPath("$.data.createDate").value((member.getCreateDate())))
+                .andExpect(jsonPath("$.data.modifyDate").value((member.getModifyDate())))
+                .andExpect(jsonPath("$.data.nickname").value((member.getNickname())))
+        ;
+    }
 }
