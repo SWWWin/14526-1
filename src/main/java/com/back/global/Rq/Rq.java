@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -27,7 +28,10 @@ public class Rq {
 
     public Member getActor() {
         String headerAuthorization = getHeader("Authorization", "");
-        String apiKey;
+
+        String apiKey;//refresh 토큰으로 사용 예정
+        String accessToken = "";
+
 
         //headerAuthroization이 없거나 비어있지 않다면 아래를 탄다
         if (!headerAuthorization.isBlank()) {
@@ -35,12 +39,15 @@ public class Rq {
                 throw new ServiceException("401-2", "인증 정보가 올바르지 않습니다.");
 
             }
-            apiKey = headerAuthorization.substring("Bearer ".length()).trim();
 
-            //headerAuthorization이 존재하지 않는다면 쿠키에서 apiKey 가지고 오기
-        } else {
+            //apiKey = headerAuthorization.substring("Bearer ".length()).trim();
+            String[] headerAuthorizationBits = headerAuthorization.split("", 3);
+
+            apiKey = headerAuthorizationBits[1];
+            accessToken = headerAuthorizationBits.length == 3 ? headerAuthorizationBits[2] : "";
+        } else { //headerAuthorization이 존재하지 않는다면 쿠키에서 apiKey 가지고 오기
             apiKey = getCookieValue("apiKey", "");
-
+            accessToken = getCookieValue("accessToken", "");
         }
 
 
@@ -48,9 +55,25 @@ public class Rq {
             throw new ServiceException("401-1", "로그인 후 사용해 주세요.");
         }
 
-        Member member = memberService.findByApiKey(apiKey)
+
+        Map<String, Object> payload = memberService.payload(accessToken);
+
+        if(payload == null) throw new ServiceException("401-4", "토큰 검증에 실패했습니다.");
+
+        Member member = null;
+
+        if(payload != null) {
+            String username = (String) payload.get("username");
+            //좋은 코드 아님! (DB 조회를 하기 떄문)
+            member = memberService.findByUsername(username)
+                    .orElseThrow(() -> new ServiceException("401-3", "회원을 찾을 수 없습니다."));
+        }
+
+        member = memberService
+                .findByApiKey(apiKey)
                 .orElseThrow(() -> new ServiceException("401-3", "회원을 찾을 수 없습니다."));
-        return null;
+
+        return member;
     }
 
     private String getHeader(String name, String defaultValue) {
