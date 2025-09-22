@@ -8,6 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -18,7 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 
 @ActiveProfiles("test") // 테스트 환경에서는 test 프로파일을 활성화합니다.
@@ -31,6 +32,13 @@ public class AuthTokenServiceTest {
     @Autowired
     private MemberService memberService;
 
+
+    @Value("${custom.jwt.secretKey}")
+    private String jwtSecretKey;
+
+    @Value("${custom.accessToken.expireSeconds}")
+    private int accessTokenExpireSeconds;
+    int expireSeconds = 60 * 60 * 24 * 365;
 
     @Test
     @DisplayName("authTokenService가 존재한다.")
@@ -46,15 +54,14 @@ public class AuthTokenServiceTest {
 
         //생성시간
         //만료시간
-        String originSecretKey = "your-very-long-secret-key-of-at-least-32-chars";
-        int expireMillis = 1000 * 60 * 60 * 24 * 365; // 토큰 만료 시간 1년
+        int expireMillis = 1000 * expireSeconds; // 토큰 만료 시간 1년
 
 
         Date issuedAt = new Date();
         Date expiration = new Date(issuedAt.getTime() + expireMillis); //발행 시간으로부터 만료시간 설정
 
 
-        byte[] keyBytes = originSecretKey.getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = jwtSecretKey.getBytes(StandardCharsets.UTF_8);
 
         SecretKey secretKey = Keys.hmacShaKeyFor(keyBytes);
 
@@ -71,18 +78,21 @@ public class AuthTokenServiceTest {
         assertThat(jwt).isNotBlank();
 
         System.out.println("jwt: " + jwt);
+
+        boolean is = Ut.jwt.isValid(jwtSecretKey, jwt);
+        assertThat(is).isTrue();
     }
 
     @Test
     @DisplayName("Ut.jwt.toString 통해 jwt 생성, {name = \"Paul\", age=23}")
     void t3() {
-        String originSecretKey = "your-very-long-secret-key-of-at-least-32-chars";
-        int expireMillis = 60 * 60 * 24 * 365; // 토큰 만료 시간 1년
+
+
 
         Map<String, Object> claims = Map.of("name", "David", "age", "20");
         String jwt = Ut.jwt.toString(
-                originSecretKey,
-                expireMillis,
+                jwtSecretKey,
+                expireSeconds,
                 claims
         );
 
@@ -93,9 +103,21 @@ public class AuthTokenServiceTest {
     @DisplayName("authTokenService.genAccessToken(member):")
     void t4() {
         Member member = memberService.findByUsername("user1").get();
-        String jwt = authTokenService.genAccessToken(member);
+        String accessToken = authTokenService.genAccessToken(member);
 
-        System.out.println("jwt: " + jwt);
+        assertThat(accessToken).isNotBlank();
+
+        System.out.println("accessToken: " + accessToken);
+
+        Map<String, Object> parsedPayload = authTokenService.payload(accessToken);
+
+        assertThat(parsedPayload)
+                .containsAllEntriesOf(
+                        Map.of(
+                                "id", member.getId(),
+                                "username", member.getUsername()
+                        )
+                );
     }
 
 

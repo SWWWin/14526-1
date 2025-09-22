@@ -3,6 +3,7 @@ spring:
     name: back
   profiles:
     active: dev
+
   output:
     ansi:
       enabled: always
