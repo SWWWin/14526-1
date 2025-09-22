@@ -31,7 +31,7 @@ public class Rq {
 
         //headerAuthroization이 없거나 비어있지 않다면 아래를 탄다
         if (!headerAuthorization.isBlank()) {
-            if (headerAuthorization.startsWith("Bearer ")) {
+            if (!headerAuthorization.startsWith("Bearer ")) {
                 throw new ServiceException("401-2", "인증 정보가 올바르지 않습니다.");
 
             }
@@ -75,17 +75,20 @@ public class Rq {
 
 
     public void setCookie(String name, String value) {
+        if(value == null) value = "";
+
+
         Cookie cookie = new Cookie(name, value);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         response.addCookie(cookie);
+
+        if(value.isBlank()) {
+            cookie.setMaxAge(0);
+        }
     }
 
     public void deleteCookie(String name) {
-        Cookie cookie = new Cookie(name, "");
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+        setCookie(name, null);
     }
 }
