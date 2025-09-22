@@ -80,4 +80,12 @@ public class Rq {
         cookie.setHttpOnly(true);
         response.addCookie(cookie);
     }
+
+    public void deleteCookie(String name) {
+        Cookie cookie = new Cookie(name, "");
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+    }
 }
