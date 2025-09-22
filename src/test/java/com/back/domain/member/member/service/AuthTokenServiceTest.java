@@ -1,6 +1,8 @@
 package com.back.domain.member.member.service;
 
 
+import com.back.domain.member.member.entity.Member;
+import com.back.standard.util.Ut;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +28,10 @@ public class AuthTokenServiceTest {
     @Autowired
     private AuthTokenService authTokenService;
 
+    @Autowired
+    private MemberService memberService;
+
+
     @Test
     @DisplayName("authTokenService가 존재한다.")
     void t1() {
@@ -37,14 +43,17 @@ public class AuthTokenServiceTest {
     void t2() {
         //서명 키
         //서명 알고리즘
-        //클레임 토큰에 담을 데이터
+
         //생성시간
         //만료시간
-        long expireMillis = 1000L * 60 * 60 * 24 * 365; // 토큰 만료 시간 1년
+        String originSecretKey = "your-very-long-secret-key-of-at-least-32-chars";
+        int expireMillis = 1000 * 60 * 60 * 24 * 365; // 토큰 만료 시간 1년
+
+
         Date issuedAt = new Date();
         Date expiration = new Date(issuedAt.getTime() + expireMillis); //발행 시간으로부터 만료시간 설정
 
-        String originSecretKey = "your-very-long-secret-key-of-at-least-32-chars";
+
         byte[] keyBytes = originSecretKey.getBytes(StandardCharsets.UTF_8);
 
         SecretKey secretKey = Keys.hmacShaKeyFor(keyBytes);
@@ -63,4 +72,31 @@ public class AuthTokenServiceTest {
 
         System.out.println("jwt: " + jwt);
     }
+
+    @Test
+    @DisplayName("Ut.jwt.toString 통해 jwt 생성, {name = \"Paul\", age=23}")
+    void t3() {
+        String originSecretKey = "your-very-long-secret-key-of-at-least-32-chars";
+        int expireMillis = 60 * 60 * 24 * 365; // 토큰 만료 시간 1년
+
+        Map<String, Object> claims = Map.of("name", "David", "age", "20");
+        String jwt = Ut.jwt.toString(
+                originSecretKey,
+                expireMillis,
+                claims
+        );
+
+        System.out.println("jwt:" + jwt);
+    }
+
+    @Test
+    @DisplayName("authTokenService.genAccessToken(member):")
+    void t4() {
+        Member member = memberService.findByUsername("user1").get();
+        String jwt = authTokenService.genAccessToken(member);
+
+        System.out.println("jwt: " + jwt);
+    }
+
+
 }
