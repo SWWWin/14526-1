@@ -36,13 +36,19 @@ public class BaseInitData {
     public void work1() {
         if(memberSerivce.count() > 0) return;
 
-        memberSerivce.join("system", "1234", "시스템");
+        Member memberSystem = memberSerivce.join("system", "1234", "시스템");
+        memberSystem.modifyApiKey(memberSystem.getUsername());
 
-        memberSerivce.join("admin", "1234", "관리자");
+        Member memberAdmin = memberSerivce.join("admin", "1234", "관리자");
+        memberAdmin.modifyApiKey(memberAdmin.getUsername());
+        Member memberUser1 = memberSerivce.join("user1", "1234", "유저1");
+        memberUser1.modifyApiKey(memberUser1.getUsername());
 
-        memberSerivce.join("user1", "1234", "유저1");
-        memberSerivce.join("user2", "1234", "유저2");
-        memberSerivce.join("user3", "1234", "유저3");
+        Member memberUser2 = memberSerivce.join("user2", "1234", "유저2");
+        memberUser2.modifyApiKey(memberUser2.getUsername());
+
+        Member memberUser3 = memberSerivce.join("user3", "1234", "유저3");
+        memberUser3.modifyApiKey(memberUser3.getUsername());
     }
 
 
