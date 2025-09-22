@@ -4,7 +4,9 @@ import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.service.PostService;
 import com.back.global.exception.ServiceException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.springframework.stereotype.Component;
@@ -16,6 +18,7 @@ import org.springframework.web.context.annotation.RequestScope;
 public class Rq {
     private final PostService postService;
     private final HttpServletRequest reqest;
+    private final HttpServletResponse response;
     private final MemberService memberService;
 
 
@@ -38,4 +41,10 @@ public class Rq {
     }
 
 
+    public void setCookie(String name, String value) {
+        Cookie cookie = new Cookie(name, value);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        response.addCookie(cookie);
+    }
 }
