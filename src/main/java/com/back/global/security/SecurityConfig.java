@@ -23,7 +23,7 @@ public class SecurityConfig {
                         auth -> auth
                                 .requestMatchers("/h2-console/**").permitAll()
                                 .requestMatchers("favicon.ico").permitAll()
-                                .requestMatchers("/**").permitAll()
+                                .requestMatchers("/api/*/adm/**").hasRole("ADMIN") //선언적으로 인가 처리
                                 .anyRequest().authenticated()
                 )
                 .headers(
@@ -34,7 +34,27 @@ public class SecurityConfig {
                 ).csrf(
                         AbstractHttpConfigurer::disable
                 )
-                .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(
+                        exceptionHandling -> exceptionHandling
+                                .accessDeniedHandler(
+                                        (request, response, accessDeniedException) -> {
+                                            response.setContentType("application/json;charset=UTF-8");
+
+                                            response.setStatus(403);
+                                            response.getWriter().write(
+                                                    """
+                                                            {
+                                                                 "resultCode": "403-1",
+                                                                 "msg": "권한이 없습니다."
+                                                            }
+                                                            """
+                                            );
+                                        }
+                                )
+                )
+        ;
+
         return http.build();
     }
 
