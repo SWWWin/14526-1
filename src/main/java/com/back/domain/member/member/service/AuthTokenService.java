@@ -18,11 +18,12 @@ public class AuthTokenService {
     String genAccessToken(Member member) {
         long id = member.getId();
         String username = member.getUsername();
+        String nickname = member.getNickname();
 
         String originSecretKey = "abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890";
         int expireSeconds = 60 * 60 * 24 * 365; // 토큰 만료 시간 1년
 
-        Map<String, Object> claims = Map.of("id", id, "username", username);
+        Map<String, Object> claims = Map.of("id", id, "username", username, "nickname", nickname);
         return Ut.jwt.toString(
                 jwtSecretKey,
                 accessTokenExpireSeconds,
@@ -41,6 +42,8 @@ public class AuthTokenService {
 
         String username = (String) parsedPayload.get("username");
 
-        return Map.of("id", id, "username", username);
+        String nickname = (String) parsedPayload.get("nickname");
+
+        return Map.of("id", id, "username", username, "nickname", nickname);
     }
 }

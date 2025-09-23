@@ -8,107 +8,127 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.annotation.RequestScope;
 
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
 @Component
-//@RequestScope
 @RequiredArgsConstructor
 public class Rq {
     private final PostService postService;
-    private final HttpServletRequest reqest;
-    private final HttpServletResponse response;
+    private final HttpServletRequest req;
+    private final HttpServletResponse resp;
     private final MemberService memberService;
-
 
     public Member getActor() {
         String headerAuthorization = getHeader("Authorization", "");
 
-        String apiKey;//refresh 토큰으로 사용 예정
-        String accessToken = "";
+        String apiKey;
+        String accessToken;
 
-
-        //headerAuthroization이 없거나 비어있지 않다면 아래를 탄다
+        // headerAuthorization이 존재한다면
         if (!headerAuthorization.isBlank()) {
             if (!headerAuthorization.startsWith("Bearer ")) {
                 throw new ServiceException("401-2", "인증 정보가 올바르지 않습니다.");
-
             }
 
-            //apiKey = headerAuthorization.substring("Bearer ".length()).trim();
-            String[] headerAuthorizationBits = headerAuthorization.split("", 3);
+            // ["Bearer", apiKey, accessToken]
+            String[] headerAuthorizations =  headerAuthorization.split(" ", 3);
 
-            apiKey = headerAuthorizationBits[1];
-            accessToken = headerAuthorizationBits.length == 3 ? headerAuthorizationBits[2] : "";
-        } else { //headerAuthorization이 존재하지 않는다면 쿠키에서 apiKey 가지고 오기
+            apiKey = headerAuthorizations[1];
+            accessToken = headerAuthorizations.length == 3 ? headerAuthorizations[2] : "";
+        } else { // headerAuthorization 존재하지 않는다면 쿠키에서 정보가지고 오기
             apiKey = getCookieValue("apiKey", "");
             accessToken = getCookieValue("accessToken", "");
         }
 
+        /*
+            검증
+           1. accessToken, apiKey(refreshToken)가지고 있는지 검증
+        */
 
-        if (apiKey.isBlank()) {
-            throw new ServiceException("401-1", "로그인 후 사용해 주세요.");
-        }
-
-
-        Map<String, Object> payload = memberService.payload(accessToken);
-
-        if(payload == null) throw new ServiceException("401-4", "토큰 검증에 실패했습니다.");
+        if (apiKey.isBlank()) throw new ServiceException("401-1", "로그인 후 사용해주세요.");
 
         Member member = null;
+        boolean isAccessTokenExists = !accessToken.isBlank();
+        boolean isAccessTokenValid = false;
 
-        if(payload != null) {
-            String username = (String) payload.get("username");
-            //좋은 코드 아님! (DB 조회를 하기 떄문)
-            member = memberService.findByUsername(username)
+        if (isAccessTokenExists) {
+            Map<String, Object> payload = memberService.payload(accessToken);
+
+            if (payload != null) {
+                long id = ((Number) payload.get("id")).longValue();
+                String username = (String) payload.get("username");
+                String nickname = (String) payload.get("nickname");
+                member = new Member(id, username, nickname);
+
+                // 토큰 유효성 검증 성공
+                isAccessTokenValid = true;
+            }
+        }
+
+        if (member == null) {
+            member = memberService.findByApiKey(apiKey)
                     .orElseThrow(() -> new ServiceException("401-3", "회원을 찾을 수 없습니다."));
         }
 
-        member = memberService
-                .findByApiKey(apiKey)
-                .orElseThrow(() -> new ServiceException("401-3", "회원을 찾을 수 없습니다."));
+        // 토큰 존재하고, 토큰 유효성 검증 실패 했을 때
+        if (isAccessTokenExists && !isAccessTokenValid) {
+            // apiKey(refresh token)을 이용한 accessToken 재발급
+            String actorAccessToken = memberService.genAccessToken(member);
+
+            setCookie("accessToken", actorAccessToken);
+            // 비교용으로 전달
+            setHeader("Authorization", actorAccessToken);
+        }
 
         return member;
     }
 
+    private void setHeader(String name, String value) {
+        if (value == null) value = "";
+
+        if (value.isBlank()) {
+            req.removeAttribute(name);
+        } else {
+            resp.setHeader(name, value);
+        }
+    }
+
     private String getHeader(String name, String defaultValue) {
-        return Optional.ofNullable(reqest.getHeader("Authrization"))
+        return Optional
+                .ofNullable(req.getHeader("Authorization"))
                 .filter(headerValue -> !headerValue.isBlank())
                 .orElse(defaultValue);
     }
 
-    private String getCookieValue(String name, String defalutValue) {
+    private String getCookieValue(String name, String defaultValue) {
         return Optional
-                .ofNullable(reqest.getCookies())
+                .ofNullable(req.getCookies())
                 .flatMap(
                         cookies ->
-                                Arrays.stream(reqest.getCookies())
+                                Arrays.stream(req.getCookies())
                                         .filter(cookie -> name.equals(cookie.getName()))
                                         .map(Cookie::getValue)
                                         .findFirst()
                 )
-                .orElse(defalutValue);
-
+                .orElse(defaultValue);
     }
 
-
     public void setCookie(String name, String value) {
-        if(value == null) value = "";
-
+        if (value == null) value = "";
 
         Cookie cookie = new Cookie(name, value);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        response.addCookie(cookie);
+        cookie.setPath("/"); // 쿠키를 도메인 전체에서 쓰겠다.
+        cookie.setHttpOnly(true); // 쿠키를 스크립트로 접근 못하게(XSS 공격방어)
 
-        if(value.isBlank()) {
+        if (value.isBlank()) {
             cookie.setMaxAge(0);
         }
+
+        resp.addCookie(cookie);
     }
 
     public void deleteCookie(String name) {

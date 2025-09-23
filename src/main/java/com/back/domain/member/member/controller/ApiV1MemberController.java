@@ -74,10 +74,12 @@ public class ApiV1MemberController {
     @GetMapping("/me")
     public RsData<MemberDto> me() {
         Member actor = rq.getActor();
+        //실시간성을 보장하기 위해 DB 조회
+        Member member = memberSerivce.findById(actor.getId()).get();
         return new RsData(
                 "200-1",
                 "%s님 정보입니다.".formatted(actor.getNickname()),
-                new MemberDto(actor)
+                new MemberDto(member)
         );
     }
 
