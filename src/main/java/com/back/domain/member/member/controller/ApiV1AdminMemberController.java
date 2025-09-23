@@ -4,6 +4,8 @@ import com.back.domain.member.member.dto.MemberDto;
 import com.back.domain.member.member.dto.MemberWithUsernameDto;
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.service.MemberService;
+import com.back.global.Rq.Rq;
+import com.back.global.exception.ServiceException;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +25,17 @@ import java.util.List;
 public class ApiV1AdminMemberController {
     private final MemberService memberService;
 
+    private final Rq rq;
+
     @GetMapping
     public List<MemberWithUsernameDto> getItems() {
         List<Member> members = memberService.findAll();
+
+        Member actor = rq.getActor();
+
+        if(!actor.isAdmin()) {
+            throw new ServiceException("403-1", "권한이 없습니다.");
+        }
 
         return members.stream()
                 .map(MemberWithUsernameDto :: new)
@@ -36,6 +46,12 @@ public class ApiV1AdminMemberController {
     @GetMapping("/{id}")
     public MemberWithUsernameDto getItem(@PathVariable Long id) {
         Member member = memberService.findById(id).get();
+
+        Member actor = rq.getActor();
+
+        if(!actor.isAdmin()) {
+            throw new ServiceException("403-1", "권한이 없습니다.");
+        }
 
         return new MemberWithUsernameDto(member);
     }

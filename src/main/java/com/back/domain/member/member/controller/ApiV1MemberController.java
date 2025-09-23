@@ -47,9 +47,12 @@ public class ApiV1MemberController {
         Member member = memberSerivce.findByUsername(reqBody.username())
                 .orElseThrow(() -> new ServiceException("401-1", "존재하지 않는 회원입니다."));
 
-        if(!member.getPassword().equals(reqBody.password())) {
-            throw new ServiceException("401-2", "비밀번호가 일치하지 않습니다.");
-        }
+
+
+        memberService.checkPassword(
+                member,
+                reqBody.password()
+        );
 
         String accessToken = memberSerivce.genAccessToken(member);
 
@@ -94,4 +97,6 @@ public class ApiV1MemberController {
                 "로그아웃되었습니다."
         );
     }
+
+    private final MemberService memberService;
 }

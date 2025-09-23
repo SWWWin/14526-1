@@ -36,11 +36,14 @@ public class ApiV1AdminMemberControllerTest {
     @Test
     @DisplayName("회원 다건조회")
     void t1() throws Exception {
+        Member actor = memberService.findByUsername("admin").get();
+        String actorApiKey = actor.getApiKey();
 
         //요청을 보냅니다.
         ResultActions resultActions = mvc
                 .perform(
                         get("/api/v1/adm/members")
+                                .header("Authorization", "Bearer " + actorApiKey)
                 )
                 .andDo(print()); // 응답을 출력합니다.
 
@@ -70,12 +73,16 @@ public class ApiV1AdminMemberControllerTest {
     @Test
     @DisplayName("회원 단건조회")
     void t2() throws Exception {
+        Member actor = memberService.findByUsername("admin").get();
+        String actorApiKey = actor.getApiKey();
+
         int id = 1;
 
         //요청을 보냅니다.
         ResultActions resultActions = mvc
                 .perform(
                         get("/api/v1/adm/members/" + id)
+                                .header("Authorization", "Bearer " + actorApiKey)
                 )
                 .andDo(print()); // 응답을 출력합니다.
 
@@ -91,6 +98,29 @@ public class ApiV1AdminMemberControllerTest {
                 .andExpect(jsonPath("$.nickname").value(member.getNickname()))
                 .andExpect(jsonPath("$.username").value(member.getUsername()))
         ;
+
+    }
+
+    @Test
+    @DisplayName("다건 조회, without permission")
+    void t3() throws Exception {
+        Member actor = memberService.findByUsername("user1").get();
+        String actorApiKey = actor.getApiKey();
+
+        //요청을 보냅니다.
+        ResultActions resultActions = mvc
+                .perform(
+                        get("/api/v1/adm/members")
+                                .header("Authorization", "Bearer " + actorApiKey)
+                )
+                .andDo(print()); // 응답을 출력합니다.
+
+        resultActions
+                .andExpect(status().isForbidden())
+                .andExpect(handler().handlerType(ApiV1AdminMemberController.class))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("권한이 없습니다."));
 
     }
 }
