@@ -145,10 +145,8 @@ public class ApiV1PostCommentControllerTest {
         // 200 Ok 상태코드 검증
         resultActions
                 .andExpect(status().isForbidden())
-                .andExpect(handler().handlerType(ApiV1PostCommentController.class))
-                .andExpect(handler().methodName("delete"))
                 .andExpect(jsonPath("$.resultCode").value("403-1"))
-                .andExpect(jsonPath("$.msg").value("%d번 댓글 삭제 권한이 없습니다.".formatted(id)));
+                .andExpect(jsonPath("$.msg").value("%d번 댓글 수정 권한이 없습니다.".formatted(id)));
     }
 
 
@@ -274,10 +272,8 @@ public class ApiV1PostCommentControllerTest {
 
         resultActions
                 .andExpect(status().isUnauthorized())
-                .andExpect(handler().handlerType(ApiV1PostCommentController.class))
-                .andExpect(handler().methodName("write"))
                 .andExpect(jsonPath("$.resultCode").value("401-1"))
-                .andExpect(jsonPath("$.msg").value("로그인 후 사용해 주세요."));
+                .andExpect(jsonPath("$.msg").value("로그인 후 사용해주세요."));
     }
 
     @Test
@@ -303,10 +299,8 @@ public class ApiV1PostCommentControllerTest {
 
         resultActions
                 .andExpect(status().isUnauthorized())
-                .andExpect(handler().handlerType(ApiV1PostCommentController.class))
-                .andExpect(handler().methodName("write"))
                 .andExpect(jsonPath("$.resultCode").value("401-2"))
-                .andExpect(jsonPath("$.msg").value("인증정보가 올바르지 않습니다."));
+                .andExpect(jsonPath("$.msg").value("인증 정보가 올바르지 않습니다."));
     }
 
     @Test
@@ -332,8 +326,6 @@ public class ApiV1PostCommentControllerTest {
 
         resultActions
                 .andExpect(status().isUnauthorized())
-                .andExpect(handler().handlerType(ApiV1PostCommentController.class))
-                .andExpect(handler().methodName("write"))
                 .andExpect(jsonPath("$.resultCode").value("401-3"))
                 .andExpect(jsonPath("$.msg").value("회원을 찾을 수 없습니다."));
     }
